@@ -6,7 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework import filters
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated  # IsAuthenticatedOrReadOnly
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,6 +16,8 @@ from profiles_api import models
 from profiles_api import permissions
 
 # Create your views here.
+
+
 class HelloApiView(APIView):
     """Test API View"""
     serializer_class = serializers.HelloSerializer
@@ -54,12 +56,11 @@ class HelloApiView(APIView):
 
 
 class HelloViewSet(viewsets.ViewSet):
-    
-    
+
     """Test API ViewSet"""
     serializer_class = serializers.HelloSerializer
 
-    #Get, all objects
+    # Get, all objects
     def list(self, request):
         """Return a hello message."""
 
@@ -71,7 +72,7 @@ class HelloViewSet(viewsets.ViewSet):
 
         return Response({'message': 'Hello!', 'a_viewset': a_viewset})
 
-    #Post object
+    # Post object
     def create(self, request):
         """Create a new hello message."""
         serializer = self.serializer_class(data=request.data)
@@ -86,28 +87,28 @@ class HelloViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    #Get object by pk
+    # Get object by pk
     def retrieve(self, request, pk=None):
         """Handle getting an object by its ID"""
 
         return Response({'http_method': 'GET'})
 
+    # Update object by pk, it will replace the old object with a new one
 
-    #Update object by pk, it will replace the old object with a new one
     def update(self, request, pk=None):
         """Handle updating an object"""
 
         return Response({'http_method': 'PUT'})
 
+    # Update part of object by pk
 
-    #Update part of object by pk
     def partial_update(self, request, pk=None):
         """Handle updating part of an object"""
 
         return Response({'http_method': 'PATCH'})
 
+    # Delete object by pk
 
-    #Delete object by pk
     def destroy(self, request, pk=None):
         """Handle removing an object"""
 
@@ -123,21 +124,18 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     search_fields = ('name', 'email',)
 
 
-
-class UserLoginApiView( ObtainAuthToken ):
+class UserLoginApiView(ObtainAuthToken):
     "" "Handle creating user auth tokens """
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-
 
 
 class UserProfileFeedViewSet(viewsets.ModelViewSet):
     """Handles creating, reading and updating profile feed items"""
     authentication_classes = (TokenAuthentication,)
     serializer_class = serializers.ProfileFeedItemSerializer
-    permission_classes = ( permissions.UpdateOwnStatus, IsAuthenticatedOrReadOnly)
+    permission_classes = (permissions.UpdateOwnStatus, IsAuthenticated)
     queryset = models.ProfileFeedItem.objects.all()
 
     def perform_create(self, serializer):
         """Sets the user profile to the logged in user"""
         serializer.save(user_profile=self.request.user)
-    
